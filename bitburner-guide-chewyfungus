@@ -1,0 +1,99 @@
+notes time
+------
+
+The game is split between physical actions and hacking actions
+
+Physical actions benefit from physical skills
+Examples of physical actions:
+  -committing crimes
+  -infiltrating companies
+
+Physical skills (combat skills going forward) raise your chances
+of success in committing crimes or performing infiltrations
+
+Performing these actions will raise the relevant combat skills
+Crimes earn money, and infiltrations can either earn money or
+faction reputation.
+
+
+
+The Augmentations & Reset Systems
+
+The game has both a soft and a hard reset system.
+
+The soft reset system involves purchasing augmentations and later
+installing them. Every additional augmentation you buy will
+exponentially increase the cost of further augmentations until you install
+them.
+
+Augmentations are useful in a lot of different ways. Most of them do
+simple things like raise stat multipliers or the rate at which you increase
+stat/s. Some of them do more interesting things, such as the CashRoot Starter
+Kit which starts you off with 1 million credits instead of 1,000.
+
+Hard Resets are a little bit of a spoiler. At the end of a run, you lose all of
+your augmentations and can choose a new, uh, game mode. Finishing an entire
+game mode can net far more interesting upgrades, such as the ability to
+automate physical tasks via ingame scripting instead of strictly hacking tasks.
+Other things include the ability to start a corporation, run a gang, and others.
+
+----
+
+Hacking
+
+Servers that aren't your own are useful for only two things:
+  -Running Scripts
+  -Supplying you with do$h
+
+They are protected by a 5 port system. Running any of the ".exe" programs
+instead of scripts are pretty much just for opening these ports and then
+gaining admin privileges. This is done automatically upon running these
+programs. The first two are relatively inexpensive, but later ones
+get pretty damn pricy. As soon as you have enough ports open, simply
+run Nuke.exe, which grants the ability to run programs on that computer.
+
+Important actions
+
+There are three main things to do on computers you don't own if you don't
+want to get creative
+  -hack
+  -grow
+  -weaken
+
+These commands, which can be implemented as functions within scripts, play a
+three part dance, and correctly deciding when to perform the actions can lead
+to significantly higher proceeds.
+
+  -Hacking steals a percentage of the money contained within the server.
+
+  -Grow will raise the amount of money within a server. The growth rate is
+    exponential, so knowing when to grow or hack is important.
+    (Usually, just to prevent having to run different scripts later in the
+    game, I will compare the amount of money on the target server with the
+    money on my home server, so that if I'm low on funds the script will
+    hack more often and grow less)
+
+  -Weaken is used to lower the security of the target server. Higher security
+    levels will decrease the chance of successfully hacking the target server.
+    This malus is counteracted by having a higher hacking level.
+
+Servers have a number of other traits. They have an amount of RAM available,
+they can have .lit files which often have game lore hidden in them, they
+have whatever programs are residing within them (usually as a result of
+copying them over, the one exception I can think of being the "final" server).
+They also have a list of other computers they're connected to, which can
+be recursively extended to search for other computers that aren't directly
+connected to the target server. Most of this information can be read by
+NetScript functions, which are listed on the wiki.
+
+
+
+RAM
+
+RAM is used to run scripts. Larger scripts use more RAM. Multiple copies of
+scripts can be ran on a machine at any time, which includes the ability
+hack/grow/weaken many, many times faster than doing it manually.
+The best way to decide how many copies of a script can be ran on a server
+is to divide the amount of free RAM available on a server with the amount
+of RAM a script takes, both of which can be easily obtained with NetScript
+functions (all of them are neatly listed in the games docs)
