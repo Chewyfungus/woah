@@ -1,0 +1,32 @@
+//Requires 1 argument: The target server
+target = args[0];
+moneyThresh = getServerMaxMoney(target) - 2000000;
+securityThresh = Math.round(getServerBaseSecurityLevel(target) / 3) + 2;
+
+programs = ["BruteSSH.exe", "FTPCrack.exe", "relaySMTP.exe",
+            "HTTPWorm.exe", "SQLInject.exe"];
+for (i = 0; i < programs.length; ++i) {
+    if (fileExists(programs[i], "home")) {
+        if (i === 0) {brutessh(target);}
+        if (i === 1) {ftpcrack(target);}
+        if (i === 2) {relaysmtp(target);}
+        if (i === 3) {httpworm(target);}
+        if (i === 4) {sqlinject(target);}
+    }
+}
+
+nuke(target);
+ 
+while(true) {
+    if (getServerSecurityLevel(target) > securityThresh) {
+        //If the server's security level is above our threshold, weaken it
+        weaken(target);
+    } else if (getServerMoneyAvailable(target) < moneyThresh) {
+        //If the server's money is less than our threshold, grow it
+        grow(target);
+    } else {
+        //Otherwise, hack it
+        hack(target);
+    }
+}
+
