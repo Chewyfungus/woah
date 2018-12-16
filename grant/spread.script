@@ -1,0 +1,111 @@
+//spread.script
+//A basic botnet that spreads itself and runs a hacking script on a host machine
+//The target of the hack is passed in as args[0]. If no args are passed in, the host
+//will hack itself
+//Usage:
+// run spread.script [victim-server]
+
+//TODO: Implement a queue and remove servers from the queue as they get hacked
+//Right now this script will get stuck on a server that it can't hack and never try any other ones
+//TODO: Implement a port read so we can change the victim-server on the fly from a command and control server
+
+// count how many programs we have to open ports
+function countPrograms() {
+    var count = 0;
+
+    if (fileExists("BruteSSH.exe", "home"))
+        count++;
+    if (fileExists("FTPCrack.exe", "home"))
+        count++;
+    if (fileExists("relaySMTP.exe", "home"))
+        count++;
+    if (fileExists("HTTPWorm.exe", "home"))
+        count++;
+    if (fileExists("SQLInject.exe", "home"))
+        count++;
+
+    return count;
+}
+
+// try to open every port we can
+function breakPorts(hostname) {
+    if (fileExists("BruteSSH.exe", "home")) {
+        print("BruteSSHing " + hostname)
+        brutessh(hostname);
+    }
+    if (fileExists("FTPCrack.exe", "home")) {
+        print("FTPCracking " + hostname)
+        ftpcrack(hostname);
+    }
+    if (fileExists("relaySMTP.exe", "home")) {
+        print("relaySMTPing " + hostname)
+        relaysmtp(hostname);
+    }
+    if (fileExists("HTTPWorm.exe", "home")) {
+        print("HTTPWorming " + hostname)
+        httpworm(hostname);
+    }
+    if (fileExists("SQLInject.exe", "home")) {
+        print("SQLInjecting " + hostname)
+        sqlinject(hostname);
+    }
+}
+
+var servers = scan();
+var ram = 0;
+var i = 0;
+var cost = 0;
+var threads = 0;
+
+//Get the target of the hack
+var target = args[0];
+if(!target){
+    target = getHostname();
+}
+
+// figure out how many threads we can run of our hacking script
+ram = getServerRam(getHostname());
+cost = getScriptRam("eh.script");
+threads = Math.floor((ram[0] - ram[1]) / cost);
+if (threads <= 0) {
+    threads = 1;
+}
+//Run the hacking script on this machine while it spreads its payload
+exec("eh.script", getHostname(), threads, target);
+
+//Infect all connected Servers
+while (i < servers.length) {
+    //Don't spread to home, it can't be done
+    if (servers[i] != "home") {
+        // check if we have the required skill to hack the server
+        if (getHackingLevel() >= getServerRequiredHackingLevel(servers[i])) {
+            // sleep this system until we have enough port openers to nuke the other server and spread
+            while (countPrograms() < getServerNumPortsRequired(servers[i])) {
+                print(countPrograms() + " port openers available, but " + getServerNumPortsRequired(servers[i]) + " needed. Sleeping...")
+                sleep(2000);
+            }
+            // we now have enough port openers, so open ports and nuke the server
+            breakPorts(servers[i]);
+            nuke(servers[i]);
+
+            //Spread if that machine isn't spreading
+            if (!isRunning("spread.script", servers[i])) {
+                print("Spreading to " + servers[i])
+                // copy the hacking scripts over
+                scp("eh.script", servers[i]);
+                scp("spread.script", servers[i]);
+                exec("spread.script", servers[i], 1, target);
+            }
+            // increment the counter to move to the next server
+            i++;
+        }
+        //If we can't hack the other server yet, just sleep
+        else {
+            print("Hacking level not high enough yet. Sleeping...")
+            sleep(2000);
+        }
+
+    } else {
+        i++;
+    }
+}

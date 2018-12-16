@@ -1,8 +1,21 @@
-// Basic smart targeted hacking script. Hacks the target supplied by arg[0]
+//eh.script (easy-hack)
+//Hacks the hostname passed in as an argument. If no arguments, hack the current server
+//Intelligently weakens, grows, and hacks the target hostname
+//Usage
+//run eh.script [victim-server]
+
+//Get the target of the hack
 target = args[0];
 
+//If no target, hack the current system
+if(!target){
+    target = getHostname();
+}
+
+//Create money threshold
 moneyThresh = getServerMaxMoney(target) - 2000000;
 print("Money Threshold: " + moneyThresh);
+//Create Security Threshold
 securityThresh = Math.round(getServerBaseSecurityLevel(target) / 3) + 2;
 
 while(true){
