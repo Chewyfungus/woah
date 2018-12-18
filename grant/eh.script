@@ -12,8 +12,8 @@ if(!target){
     target = getHostname();
 }
 
-//Create money threshold
-moneyThresh = getServerMaxMoney(target) - 2000000;
+//Create money threshold. 90% is usually good
+moneyThresh = getServerMaxMoney(target) * .9;
 print("Money Threshold: " + moneyThresh);
 //Create Security Threshold
 securityThresh = Math.round(getServerBaseSecurityLevel(target) / 3) + 2;
@@ -21,12 +21,32 @@ securityThresh = Math.round(getServerBaseSecurityLevel(target) / 3) + 2;
 while(true){
     if (getServerSecurityLevel(target) > securityThresh) {
         //If the server's security level is above our threshold, weaken it
+        ram = getServerRam(getHostname());
+        cost = getScriptRam("w.script");
+        threads = Math.floor((ram[0] - ram[1]) / cost);
+        if (threads <= 0) {
+            threads = 1;
+        }
+        exec("w.script", getHostname(), threads, target);
         weaken(target);
     } else if (getServerMoneyAvailable(target) < moneyThresh) {
         //If the server's money is less than our threshold, grow it
+        ram = getServerRam(getHostname());
+        cost = getScriptRam("g.script");
+        threads = Math.floor((ram[0] - ram[1]) / cost);
+        if (threads <= 0) {
+            threads = 1;
+        }
+        exec("g.script", getHostname(), threads, target);
         grow(target);
     } else {
         //Otherwise, hack it
-        hack(target);
+        ram = getServerRam(getHostname());
+        cost = getScriptRam("h.script");
+        threads = Math.floor((ram[0] - ram[1]) / cost);
+        if (threads <= 0) {
+            threads = 1;
+        }
+        exec("h.script", getHostname(), threads, target);
     }
 }

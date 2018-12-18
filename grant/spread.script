@@ -65,13 +65,9 @@ if(!target){
 
 // figure out how many threads we can run of our hacking script
 ram = getServerRam(getHostname());
-cost = getScriptRam("eh.script");
-threads = Math.floor((ram[0] - ram[1]) / cost);
-if (threads <= 0) {
-    threads = 1;
-}
+
 //Run the hacking script on this machine while it spreads its payload
-exec("eh.script", getHostname(), threads, target);
+exec("eh.script", getHostname(), 1, target);
 
 //Infect all connected Servers
 while (i < servers.length) {
@@ -93,6 +89,9 @@ while (i < servers.length) {
                 print("Spreading to " + servers[i])
                 // copy the hacking scripts over
                 scp("eh.script", servers[i]);
+                scp("h.script", servers[i]);
+                scp("w.script", servers[i]);
+                scp("g.script", servers[i]);
                 scp("spread.script", servers[i]);
                 exec("spread.script", servers[i], 1, target);
             }
