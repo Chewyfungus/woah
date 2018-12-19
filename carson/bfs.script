@@ -4,14 +4,19 @@ depth = 1;
 maxDepth = 5;
 oldest = nodesToCheck[nodesToCheck.length - 1];
 
+//This implements a Depth First search through the node tree
 while (nodesToCheck.length > 0) {
+    //Removing the first node erases backtrack so there are no infinite loops
     currentNode = nodesToCheck.shift();
+
+    //Do whatever logic you want done on each node
     tprint(currentNode + ": " + sprintf("%e",getServerMaxMoney(currentNode)) + "," + getServerGrowth(currentNode));
     while(getServerRam(root)[0] - getServerRam(root)[1] < 4.6){
         sleep(5000);
     }
     run("infect.script",1,currentNode);
     
+    //Eliminate adding new nodes after the correct depth is reached
     if (depth < maxDepth) {
         currentList = scan(currentNode);
         currentList.shift();
@@ -20,6 +25,7 @@ while (nodesToCheck.length > 0) {
         }
     }
 
+    //Logic to calculate what depth the search is at from the root node
     if (currentNode == oldest) {
         oldest = nodesToCheck[nodesToCheck.length - 1];
         depth++;

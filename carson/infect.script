@@ -2,6 +2,8 @@ target = args[0];
 
 if (getServerRequiredHackingLevel(target) <= getHackingLevel()) {
     if (!hasRootAccess(target)) {
+
+        //Checking for port opening software
         portsReq = getServerNumPortsRequired(target);
         if (portsReq > 0) {
             if (fileExists("brutessh.exe")) {
@@ -19,12 +21,15 @@ if (getServerRequiredHackingLevel(target) <= getHackingLevel()) {
                 }
             }
         }
+        //Otherwise nuke the target if we don't already have root access
         nuke(target);
     } else {
+        //Kill all threads so that we have ram to replace them with new ones
         while (killall(target)) {
             sleep(1000);
         }
     }
+    //Copy, calculate available ram, and execute the remote mining script on that server
     scp("mine.script", "home", target);
     threads = Math.floor(getServerRam(target)[0] / 2.2);
     exec("mine.script", target, threads, "phantasy", 1e8, getServerBaseSecurityLevel("phantasy"),threads);
