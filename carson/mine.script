@@ -4,11 +4,15 @@ secLevel = args[2];
 threads = args[3];
 
 while (true) {
-    //if (getServerSecurityLevel(target) - getServerBaseSecurityLevel(target) > ps(target)[0].threads * 0.05) { //Eleminated to minimize ram requirement
-    //If the act of weakening would lower your target lower than its base level than there is no point in weakening
-    //When run in parallel this ensures that the lowest ram servers are also the servers that most often weaken the target and allow the better servers to 
-    //grow and hack it faster
 
+    //Eleminated to minimize ram requirement
+    //if (getServerSecurityLevel(target) - getServerBaseSecurityLevel(target) > ps(target)[0].threads * 0.05) { 
+
+    `
+    If the act of weakening would lower your target lower than its base level then there is no point in weakening
+    When run in parallel this ensures that the lowest ram servers are also the servers that most often weaken the target and allow the better servers to 
+    grow and hack it faster
+    `
     if (getServerSecurityLevel(target) - secLevel > threads * 0.05) {
         weaken(target);
     } 
