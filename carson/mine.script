@@ -1,0 +1,26 @@
+target = args[0];
+limit = args[1];
+secLevel = args[2];
+threads = args[3];
+
+while (true) {
+
+    //Eleminated to minimize ram requirement
+    //if (getServerSecurityLevel(target) - getServerBaseSecurityLevel(target) > ps(target)[0].threads * 0.05) { 
+
+    `
+    If the act of weakening would lower your target lower than its base level then there is no point in weakening
+    When run in parallel this ensures that the lowest ram servers are also the servers that most often weaken the target and allow the better servers to 
+    grow and hack it faster
+    `
+    if (getServerSecurityLevel(target) - secLevel > threads * 0.05) {
+        weaken(target);
+    } 
+    //If our home node has less than a 10th of the available money on this server then we probably are hurting for money and we should hack
+    else if (getServerMoneyAvailable(target) > limit || getServerMoneyAvailable("home") < getServerMoneyAvailable(target) / 10) {
+        hack(target);
+    }
+    else{
+        grow(target);
+    }
+}
