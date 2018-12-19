@@ -1,0 +1,33 @@
+target = args[0];
+
+if (getServerRequiredHackingLevel(target) <= getHackingLevel()) {
+    if (!hasRootAccess(target)) {
+        portsReq = getServerNumPortsRequired(target);
+        if (portsReq > 0) {
+            if (fileExists("brutessh.exe")) {
+                brutessh(target);
+            } else {
+                tprint("Couldn't hack: " + target + ". No port openers.")
+                exit();
+            }
+            if (portsReq > 1) {
+                if (fileExists("ftpcrack.exe")) {
+                    ftpcrack(target);
+                } else {
+                    exit();
+                    tprint("Couldn't hack: " + target + ". Not enough port openers.")
+                }
+            }
+        }
+        nuke(target);
+    } else {
+        while (killall(target)) {
+            sleep(1000);
+        }
+    }
+    scp("mine.script", "home", target);
+    threads = Math.floor(getServerRam(target)[0] / 2.2);
+    exec("mine.script", target, threads, "phantasy", 1e8, getServerBaseSecurityLevel("phantasy"),threads);
+}else{
+    tprint("Couldn't hack: " + target + ". Level too high.")
+}

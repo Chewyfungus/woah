@@ -1,0 +1,27 @@
+root = getHostname();
+nodesToCheck = scan(root);
+depth = 1;
+maxDepth = 5;
+oldest = nodesToCheck[nodesToCheck.length - 1];
+
+while (nodesToCheck.length > 0) {
+    currentNode = nodesToCheck.shift();
+    tprint(currentNode + ": " + sprintf("%e",getServerMaxMoney(currentNode)) + "," + getServerGrowth(currentNode));
+    while(getServerRam(root)[0] - getServerRam(root)[1] < 4.6){
+        sleep(5000);
+    }
+    run("infect.script",1,currentNode);
+    
+    if (depth < maxDepth) {
+        currentList = scan(currentNode);
+        currentList.shift();
+        if (currentList.length > 0) {
+            nodesToCheck = nodesToCheck.concat(currentList);
+        }
+    }
+
+    if (currentNode == oldest) {
+        oldest = nodesToCheck[nodesToCheck.length - 1];
+        depth++;
+    }
+}
