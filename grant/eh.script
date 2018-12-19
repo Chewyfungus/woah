@@ -28,7 +28,6 @@ while(true){
             threads = 1;
         }
         exec("w.script", getHostname(), threads, target);
-        weaken(target);
     } else if (getServerMoneyAvailable(target) < moneyThresh) {
         //If the server's money is less than our threshold, grow it
         ram = getServerRam(getHostname());
@@ -38,7 +37,6 @@ while(true){
             threads = 1;
         }
         exec("g.script", getHostname(), threads, target);
-        grow(target);
     } else {
         //Otherwise, hack it
         ram = getServerRam(getHostname());
