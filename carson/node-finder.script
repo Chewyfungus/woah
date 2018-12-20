@@ -1,0 +1,14 @@
+found = scan("home");
+unscanned = scan("home");
+
+while (unscanned.length > 0) {
+    currentNode = unscanned.shift();
+
+    currentList = scan(currentNode);
+    currentList.shift();
+    if (currentList.length > 0) {
+        unscanned = unscanned.concat(currentList);
+        found = found.concat(currentList);
+        write("known-nodes.txt", found.join(","), "w");
+    }
+}

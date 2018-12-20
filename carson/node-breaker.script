@@ -1,0 +1,63 @@
+allNodes = [];
+rootedNodes = [];
+growthTarget = read("growthTarget.txt");
+
+while (allNodes.length < 1) {
+    allNodesText = read("known-nodes.txt");
+    if (allNodesText) {
+        allNodes = allNodesText.split(",");
+    }
+}
+
+while (true) {
+    for (i = 0; i < allNodes.length; i++) {
+        if (!hasRootAccess(allNodes[i])) {
+            if (getServerRequiredHackingLevel(allNodes[i]) <= getHackingLevel()) {
+                portsReq = getServerNumPortsRequired(allNodes[i]);
+                if (portsReq > 0) {
+                    if (fileExists("brutessh.exe")) {
+                        brutessh(allNodes[i]);
+                    } else {
+                        print("Not enough port breakers: " + allNodes[i]);
+                        continue;
+                    }
+                    if (portsReq > 1) {
+                        if (fileExists("ftpcrack.exe")) {
+                            ftpcrack(allNodes[i]);
+                        } else {
+                            print("Not enough port breakers: " + allNodes[i]);
+                            continue;
+                        }
+                        if (portsReq > 2) {
+                            print("Not enough port breakers: " + allNodes[i]);
+                            continue;
+                        }
+                    }
+                }
+                nuke(allNodes[i]);
+                rootedNodes.push(allNodes[i]);
+                scp("g.script", "home", allNodes[i]);
+                scp("mine.script", "home", allNodes[i]);
+                serverRam = getServerRam(allNodes[i]);
+                growThreads = Math.floor(((serverRam[0] - serverRam[1]) - getScriptRam("mine.script")) / getScriptRam("g.script"));
+                exec("mine.script", allNodes[i], 1, growthTarget, allNodes[i], growThreads);
+            } else {
+                print("Not high enough hacking level: " + allNodes[i]);
+            }
+        } else {
+            if (rootedNodes.indexOf(allNodes[i]) == -1) {
+                rootedNodes.push(allNodes[i]);
+                if (!scriptRunning("mine.script", allNodes[i])) {
+                    scp("g.script", "home", allNodes[i]);
+                    scp("mine.script", "home", allNodes[i]);
+                    serverRam = getServerRam(allNodes[i]);
+                    growThreads = Math.floor(((serverRam[0] - serverRam[1]) - getScriptRam("mine.script")) / getScriptRam("g.script"));
+                    exec("mine.script", allNodes[i], 1, growthTarget, allNodes[i], growThreads);
+                }
+            }
+        }
+        sleep(10000);
+    }
+    print("End of Loop");
+    allNodes = read("known-nodes.txt").split(",");
+}

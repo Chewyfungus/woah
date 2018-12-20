@@ -1,0 +1,40 @@
+while (!hasRootAccess("joesguns")) {
+    print("waiting...");
+}
+growthTarget = read("growthTarget.txt");
+remSecLevel = getServerSecurityLevel(growthTarget) - getServerMinSecurityLevel(growthTarget);
+rootedNodes = [];
+
+while (true) {
+    //if we have to weaken at least once and we are not already weakening
+    activityLevel = read(1);
+    while(activityLevel !== "NULL PORT DATA"){
+        remSecLevel += activityLevel * 0.004;
+        activityLevel = read(1);
+    }
+    if (remSecLevel > 0.05 && !scriptRunning("w.script", "home")) {
+        serverRam = getServerRam("home");
+        maxWeaken = Math.floor((serverRam[0] - serverRam[1]) * 0.90 / getScriptRam("w.script"));
+        neededWeaken = Math.floor(remSecLevel / 0.05);
+        exec("w.script", "home", Math.min(maxWeaken, neededWeaken), growthTarget);
+    }
+    print("Weaken Check Done");
+
+    //if the money is overflowing and we are not already hacking
+    if (getServerMoneyAvailable(growthTarget) > getServerMaxMoney(growthTarget) * 0.75 && !scriptRunning("h.script", "home")) {
+        hackThreads = 50;
+        serverRam = getServerRam("home");
+        if ((serverRam[0] - serverRam[1]) > getScriptRam("h.script") * hackThreads) {
+            remSecLevel += hackThreads * 0.002;
+            exec("h.script", "home", hackThreads, growthTarget);
+        }
+    }
+    print("Hack Check Done");
+
+    //use everything else for growth
+    if (!scriptRunning("g.script", "home")) {
+        serverRam = getServerRam("home");
+        exec("g.script", "home", Math.floor((serverRam[0] - serverRam[1]) * 0.90 / getScriptRam("w.script")), growthTarget);
+    }
+    print("Home Growth Check Done");
+}
