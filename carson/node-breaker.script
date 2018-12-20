@@ -35,6 +35,7 @@ while (true) {
                     }
                 }
                 nuke(allNodes[i]);
+                tprint("Hacked New Node: " + allNodes[i]);
                 rootedNodes.push(allNodes[i]);
                 scp("g.script", "home", allNodes[i]);
                 scp("mine.script", "home", allNodes[i]);
@@ -48,6 +49,7 @@ while (true) {
             if (rootedNodes.indexOf(allNodes[i]) == -1) {
                 rootedNodes.push(allNodes[i]);
                 if (!scriptRunning("mine.script", allNodes[i])) {
+                    tprint("Restarted mine.script on: " + allNodes[i]);
                     scp("g.script", "home", allNodes[i]);
                     scp("mine.script", "home", allNodes[i]);
                     serverRam = getServerRam(allNodes[i]);
@@ -56,7 +58,7 @@ while (true) {
                 }
             }
         }
-        sleep(10000);
+        sleep(5000);
     }
     print("End of Loop");
     allNodes = read("known-nodes.txt").split(",");
