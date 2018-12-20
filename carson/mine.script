@@ -2,8 +2,11 @@ growthTarget = args[0];
 self = args[1];
 threads = args[2];
 
-while(true){
-    run("g.script",threads,growthTarget);
-    write(1,threads);
+while (true) {
+    while (ps().some(function(prog) {
+            return prog.filename === "g.script"
+        })) {}
+    run("g.script", threads, growthTarget);
+    write(1, threads);
     sleep(Math.ceil(getGrowTime(growthTarget) * 1000));
 }
