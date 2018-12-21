@@ -1,6 +1,6 @@
 allNodes = [];
 rootedNodes = [];
-growthTarget = read("growthTarget.txt");
+growthTarget = read("growth-target.txt");
 
 while (allNodes.length < 1) {
     allNodesText = read("known-nodes.txt");
@@ -41,7 +41,8 @@ while (true) {
                 scp("mine.script", "home", allNodes[i]);
                 serverRam = getServerRam(allNodes[i]);
                 growThreads = Math.floor(((serverRam[0] - serverRam[1]) - getScriptRam("mine.script")) / getScriptRam("g.script"));
-                exec("mine.script", allNodes[i], 1, growthTarget, allNodes[i], growThreads);
+                exec("mine.script", allNodes[i], 1, growthTarget, growThreads);
+                sleep(5000);
             } else {
                 print("Not high enough hacking level: " + allNodes[i]);
             }
@@ -54,11 +55,11 @@ while (true) {
                     scp("mine.script", "home", allNodes[i]);
                     serverRam = getServerRam(allNodes[i]);
                     growThreads = Math.floor(((serverRam[0] - serverRam[1]) - getScriptRam("mine.script")) / getScriptRam("g.script"));
-                    exec("mine.script", allNodes[i], 1, growthTarget, allNodes[i], growThreads);
+                    exec("mine.script", allNodes[i], 1, growthTarget, growThreads);
+                    sleep(5000);
                 }
             }
         }
-        sleep(5000);
     }
     print("End of Loop");
     allNodes = read("known-nodes.txt").split(",");

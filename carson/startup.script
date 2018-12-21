@@ -1,4 +1,5 @@
 clear(1);
+write("growth-target.txt","joesguns","w");
 //run node-finder that saves list of nodes as text file
 run("node-finder.script");
 //run breaker that separates nodes into hacked and not-hacked
@@ -6,5 +7,7 @@ run("node-breaker.script");
 //run node-manager that keeps track of hacked nodes
 run("node-manager.script");
 //run serverBuyer that waits and buys new servers when appropriate
+run("server-buyer.script",1,256);
 //run hacknet-manager that buys/upgrades hacknet nodes
+run("hacknet-node-manager.script",1);
 //run stock trader

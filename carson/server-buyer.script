@@ -1,0 +1,16 @@
+serverGB = args[0];
+purchasedServers = scan("home").filter(function(serv){return serv.startsWith("pserv-")});
+growthTarget = read("growth-target.txt");
+for (i = purchasedServers.length; i < getPurchasedServerLimit(); i++) {
+    while (getPurchasedServerCost(serverGB) > getServerMoneyAvailable("home") * 0.25) {
+        sleep(10000);
+    }
+    serverName = "pserv-" + i;
+    purchaseServer(serverName, serverGB);
+    sleep(50);
+    scp("g.script", "home", serverName);
+    scp("mine.script", "home", serverName);
+    serverRam = getServerRam(serverName);
+    growThreads = Math.floor(((serverRam[0] - serverRam[1]) - getScriptRam("mine.script")) / getScriptRam("g.script"));
+    exec("mine.script", serverName, 1, growthTarget, growThreads);
+}

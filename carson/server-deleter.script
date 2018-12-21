@@ -1,0 +1,6 @@
+serverGB = args[0];
+purchasedServers = scan("home").filter(function(serv){return serv.startsWith("pserv-")});
+for (i = 0; i < purchasedServers.length; i++) {
+    while(killall(purchasedServers[i])){}
+    deleteServer(purchasedServers[i]);
+}

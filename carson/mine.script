@@ -1,10 +1,9 @@
 growthTarget = args[0];
-self = args[1];
-threads = args[2];
+threads = args[1];
 
 while (true) {
     while (ps().some(function(prog) {
-            return prog.filename === "g.script"
+            return prog.filename === "g.script";
         })) {}
     run("g.script", threads, growthTarget);
     write(1, threads);

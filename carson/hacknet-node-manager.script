@@ -1,0 +1,97 @@
+hacknetMultiplier = getHacknetMultipliers().production;
+
+function calcRate(level, ram, cores) {
+    return (level * 1.6) *
+        Math.pow(1.035, ram - 1) *
+        ((cores + 5) / 6) *
+        hacknetMultiplier;
+}
+
+
+
+levelCostBenAgg = [];
+ramCostBenAgg = [];
+coreCostBenAgg = [];
+if (hacknet.numNodes() === 0) {
+    while (getServerMoneyAvailable("home") * 0.1 < hacknet.getPurchaseNodeCost()) {
+        print("Not Enough Money to Buy Node");
+        sleep(3000);
+    }
+    print("Buying Node");
+    hacknet.purchaseNode();
+    sleep(1000);
+}
+for (i = 0; i < hacknet.numNodes(); i++) {
+    print("Checking Node: " + i);
+    nodeInfo = hacknet.getNodeStats(i);
+    levelCostBenAgg.push(hacknet.getLevelUpgradeCost(i, 1) / (calcRate(nodeInfo.level + 1, nodeInfo.ram, nodeInfo.cores) - nodeInfo.production));
+    ramCostBenAgg.push(hacknet.getRamUpgradeCost(i, 1) / (calcRate(nodeInfo.level, nodeInfo.ram * 2, nodeInfo.cores) - nodeInfo.production));
+    coreCostBenAgg.push(hacknet.getCoreUpgradeCost(i, 1) / (calcRate(nodeInfo.level, nodeInfo.ram, nodeInfo.cores + 1) - nodeInfo.production));
+}
+
+mults = getHacknetMultipliers();
+
+levelUpgradeCost = 1000 / 2 * 1.04 * mults.levelCost;
+ramUpgradeCost = 30000 * 1.28 * mults.ramCost;
+coreUpgradeCost = 500000 * 1.48 * mults.coreCost;
+
+newNodeCost = hacknet.getPurchaseNodeCost();
+
+while (true) {
+
+    newNodeCost = hacknet.getPurchaseNodeCost();
+    baseLevelCostBen = (levelUpgradeCost + newNodeCost) / (1.6 * mults.production);
+    baseRamCostBen = (ramUpgradeCost + newNodeCost) / (1.6 * mults.production);
+    baseCoreCostBen = (coreUpgradeCost + newNodeCost) / (1.6 * mults.production);
+
+    minLevelCostBen = Math.min.apply(null, levelCostBenAgg);
+    minRamCostBen = Math.min.apply(null, ramCostBenAgg);
+    minCoreCostBen = Math.min.apply(null, coreCostBenAgg);
+    //buyServerCostBen = hacknet.getPurchaseNodeCost() / (1.6 * hacknetMultiplier);
+    print("Starting Path Comparison");
+    print(levelCostBenAgg);
+    print(ramCostBenAgg);
+    print(coreCostBenAgg);
+
+    if (minLevelCostBen <= minRamCostBen && minLevelCostBen <= minCoreCostBen && minLevelCostBen <= baseLevelCostBen) {
+        //Buy a level
+        nodeIndex = levelCostBenAgg.indexOf(minLevelCostBen);
+        while (getServerMoneyAvailable("home") * 0.1 < hacknet.getLevelUpgradeCost(nodeIndex, 1)) {
+            print("Not Enough Money to Upgrade Level of " + nodeIndex);
+            sleep(3000);
+        }
+        print("Upgrading Level of: " + nodeIndex);
+        hacknet.upgradeLevel(nodeIndex, 1);
+
+    } else if (minRamCostBen < minLevelCostBen && minRamCostBen < minCoreCostBen && minRamCostBen < baseRamCostBen) {
+        //Buy ram
+        nodeIndex = ramCostBenAgg.indexOf(minRamCostBen);
+        while (getServerMoneyAvailable("home") * 0.1 < hacknet.getRamUpgradeCost(nodeIndex, 1)) {
+            print("Not Enough Money to Upgrade Ram of " + nodeIndex);
+            sleep(3000);
+        }
+        print("Upgrading Ram of: " + nodeIndex);
+        hacknet.upgradeRam(nodeIndex, 1);
+    } else if (minCoreCostBen < minLevelCostBen && minCoreCostBen < minRamCostBen && minCoreCostBen < baseCoreCostBen) {
+        //Buy a core
+        nodeIndex = coreCostBenAgg.indexOf(minCoreCostBen);
+        while (getServerMoneyAvailable("home") * 0.1 < hacknet.getCoreUpgradeCost(nodeIndex, 1)) {
+            print("Not Enough Money to Upgrade Core of " + nodeIndex);
+            sleep(3000);
+        }
+        print("Upgrading Core of: " + nodeIndex);
+        hacknet.upgradeCore(nodeIndex, 1);
+    } else if (baseLevelCostBen < minLevelCostBen || baseRamCostBen < minRamCostBen || baseCoreCostBen < minCoreCostBen) {
+        //Buy a server
+        while (getServerMoneyAvailable("home") * 0.1 < hacknet.getPurchaseNodeCost()) {
+            print("Not Enough Money to Buy Node");
+            sleep(3000);
+        }
+        print("Buying Node");
+        nodeIndex = hacknet.purchaseNode();
+    }
+    nodeInfo = hacknet.getNodeStats(nodeIndex);
+    levelCostBenAgg[nodeIndex] = hacknet.getLevelUpgradeCost(nodeIndex, 1) / (calcRate(nodeInfo.level + 1, nodeInfo.ram, nodeInfo.cores) - nodeInfo.production);
+    ramCostBenAgg[nodeIndex] = hacknet.getRamUpgradeCost(nodeIndex, 1) / (calcRate(nodeInfo.level, nodeInfo.ram * 2, nodeInfo.cores) - nodeInfo.production);
+    coreCostBenAgg[nodeIndex] = hacknet.getCoreUpgradeCost(nodeIndex, 1) / (calcRate(nodeInfo.level, nodeInfo.ram, nodeInfo.cores + 1) - nodeInfo.production);
+}

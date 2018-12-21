@@ -1,7 +1,7 @@
 while (!hasRootAccess("joesguns")) {
     print("waiting...");
 }
-growthTarget = read("growthTarget.txt");
+growthTarget = read("growth-target.txt");
 remSecLevel = getServerSecurityLevel(growthTarget) - getServerMinSecurityLevel(growthTarget);
 rootedNodes = [];
 
@@ -22,7 +22,7 @@ while (true) {
 
     //if the money is overflowing and we are not already hacking
     if (getServerMoneyAvailable(growthTarget) > getServerMaxMoney(growthTarget) * 0.75 && !scriptRunning("h.script", "home")) {
-        hackThreads = 50;
+        hackThreads = 100;
         serverRam = getServerRam("home");
         if ((serverRam[0] - serverRam[1]) > getScriptRam("h.script") * hackThreads) {
             remSecLevel += hackThreads * 0.002;
