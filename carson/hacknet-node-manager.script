@@ -1,6 +1,5 @@
 hacknetMultiplier = getHacknetMultipliers().production;
 
-//This is the magical function that calculates the production rate of a node
 function calcRate(level, ram, cores) {
     return (level * 1.6) *
         Math.pow(1.035, ram - 1) *
@@ -8,12 +7,11 @@ function calcRate(level, ram, cores) {
         hacknetMultiplier;
 }
 
-//Here are the inits for the three lists that will have the Cost-Benefit information for each upgrade in them
+
+
 levelCostBenAgg = [];
 ramCostBenAgg = [];
 coreCostBenAgg = [];
-
-//If we have no nodes then we are going to want to wait until we have enough money for at least one node
 if (hacknet.numNodes() === 0) {
     while (getServerMoneyAvailable("home") * 0.1 < hacknet.getPurchaseNodeCost()) {
         print("Not Enough Money to Buy Node");
@@ -23,8 +21,6 @@ if (hacknet.numNodes() === 0) {
     hacknet.purchaseNode();
     sleep(1000);
 }
-
-//Take inventory of every node and add each to the Cost-Benefit lists (in order so that the indicies of one match the index of the node)
 for (i = 0; i < hacknet.numNodes(); i++) {
     print("Checking Node: " + i);
     nodeInfo = hacknet.getNodeStats(i);
@@ -33,34 +29,33 @@ for (i = 0; i < hacknet.numNodes(); i++) {
     coreCostBenAgg.push(hacknet.getCoreUpgradeCost(i, 1) / (calcRate(nodeInfo.level, nodeInfo.ram, nodeInfo.cores + 1) - nodeInfo.production));
 }
 
-//This is all data for calculating how much better it would be to buy a new server no need to run it every time because it's static
 mults = getHacknetMultipliers();
-//levelUpgradeCost = 1000 / 2 * 1.04 * mults.levelCost; I thought I would use these but I don't need them
-//ramUpgradeCost = 30000 * 1.28 * mults.ramCost;
-//coreUpgradeCost = 500000 * 1.48 * mults.coreCost;
+
+levelUpgradeCost = 1000 / 2 * 1.04 * mults.levelCost;
+ramUpgradeCost = 30000 * 1.28 * mults.ramCost;
+coreUpgradeCost = 500000 * 1.48 * mults.coreCost;
+
 newNodeCost = hacknet.getPurchaseNodeCost();
 
 while (true) {
-    //Run the cost check again to make sure someone didn't buy nodes
-    newNodeCost = hacknet.getPurchaseNodeCost();
-    
-    //Calculate the cost benefit of buying a new node and upgrading a component of it
-    buyServerCostBen = newNodeCost / (1.6 * mults.production);
 
-    //Find the lowest Cost-Ben for each type of upgrade
+    newNodeCost = hacknet.getPurchaseNodeCost();
+    baseLevelCostBen = (levelUpgradeCost + newNodeCost) / (1.6 * mults.production);
+    baseRamCostBen = (ramUpgradeCost + newNodeCost) / (1.6 * mults.production);
+    baseCoreCostBen = (coreUpgradeCost + newNodeCost) / (1.6 * mults.production);
+
     minLevelCostBen = Math.min.apply(null, levelCostBenAgg);
     minRamCostBen = Math.min.apply(null, ramCostBenAgg);
     minCoreCostBen = Math.min.apply(null, coreCostBenAgg);
-    
-    //Debug so I can figure out why it picked a certain node
+    //buyServerCostBen = hacknet.getPurchaseNodeCost() / (1.6 * hacknetMultiplier);
     print("Starting Path Comparison");
     print(levelCostBenAgg);
     print(ramCostBenAgg);
     print(coreCostBenAgg);
 
-    if (minLevelCostBen <= minRamCostBen && minLevelCostBen <= minCoreCostBen && minLevelCostBen <= buyServerCostBen) {
-        //When you have enough money Buy a level
-        nodeIndex = levelCostBenAgg.indexOf(minLevelCostBen); //This gets the index of the node. Remember how I said order of that list is important?
+    if (minLevelCostBen <= minRamCostBen && minLevelCostBen <= minCoreCostBen && minLevelCostBen <= baseLevelCostBen) {
+        //Buy a level
+        nodeIndex = levelCostBenAgg.indexOf(minLevelCostBen);
         while (getServerMoneyAvailable("home") * 0.1 < hacknet.getLevelUpgradeCost(nodeIndex, 1)) {
             print("Not Enough Money to Upgrade Level of " + nodeIndex);
             sleep(3000);
@@ -68,8 +63,8 @@ while (true) {
         print("Upgrading Level of: " + nodeIndex);
         hacknet.upgradeLevel(nodeIndex, 1);
 
-    } else if (minRamCostBen < minLevelCostBen && minRamCostBen < minCoreCostBen && minRamCostBen < buyServerCostBen) {
-        //When you have enough money Buy ram
+    } else if (minRamCostBen < minLevelCostBen && minRamCostBen < minCoreCostBen && minRamCostBen < baseRamCostBen) {
+        //Buy ram
         nodeIndex = ramCostBenAgg.indexOf(minRamCostBen);
         while (getServerMoneyAvailable("home") * 0.1 < hacknet.getRamUpgradeCost(nodeIndex, 1)) {
             print("Not Enough Money to Upgrade Ram of " + nodeIndex);
@@ -77,8 +72,8 @@ while (true) {
         }
         print("Upgrading Ram of: " + nodeIndex);
         hacknet.upgradeRam(nodeIndex, 1);
-    } else if (minCoreCostBen < minLevelCostBen && minCoreCostBen < minRamCostBen && minCoreCostBen < buyServerCostBen) {
-        //When you have enough money Buy a core
+    } else if (minCoreCostBen < minLevelCostBen && minCoreCostBen < minRamCostBen && minCoreCostBen < baseCoreCostBen) {
+        //Buy a core
         nodeIndex = coreCostBenAgg.indexOf(minCoreCostBen);
         while (getServerMoneyAvailable("home") * 0.1 < hacknet.getCoreUpgradeCost(nodeIndex, 1)) {
             print("Not Enough Money to Upgrade Core of " + nodeIndex);
@@ -86,8 +81,8 @@ while (true) {
         }
         print("Upgrading Core of: " + nodeIndex);
         hacknet.upgradeCore(nodeIndex, 1);
-    } else if (buyServerCostBen < minLevelCostBen || buyServerCostBen < minRamCostBen || buyServerCostBen < minCoreCostBen) {
-        //When you have enough money Buy a server
+    } else if (baseLevelCostBen < minLevelCostBen || baseRamCostBen < minRamCostBen || baseCoreCostBen < minCoreCostBen) {
+        //Buy a server
         while (getServerMoneyAvailable("home") * 0.1 < hacknet.getPurchaseNodeCost()) {
             print("Not Enough Money to Buy Node");
             sleep(3000);

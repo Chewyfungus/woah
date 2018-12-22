@@ -1,0 +1,99 @@
+export async function main(ns) {
+    ns.print("I actually work");
+    var mults = ns.getHacknetMultipliers();
+    ns.print(mults.production);
+    var hacknetProductionMult = mults.production;
+    var levelUpgradeCost = 1000 / 2 * 1.04 * mults.levelCost;
+    var ramUpgradeCost = 30000 * 1.28 * mults.ramCost;
+    var coreUpgradeCost = 500000 * 1.48 * mults.coreCost;
+
+    var levelCostBenAgg = [];
+    var ramCostBenAgg = [];
+    var coreCostBenAgg = [];
+    
+    var nodeInfo; //Defining this here
+    if (ns.hacknet.numNodes() === 0) {
+        while (ns.getServerMoneyAvailable("home") * 0.1 < ns.hacknet.getPurchaseNodeCost()) {
+            ns.print("Not Enough Money to Buy Node");
+            await ns.sleep(3000);
+        }
+        ns.print("Buying Node");
+        ns.hacknet.purchaseNode();
+        await ns.sleep(1000);
+    }
+    for (var i = 0; i < ns.hacknet.numNodes(); i++) {
+        ns.print("Checking Node: " + i);
+        nodeInfo = ns.hacknet.getNodeStats(i);
+        levelCostBenAgg.push(ns.hacknet.getLevelUpgradeCost(i, 1) / (calcRate(nodeInfo.level + 1, nodeInfo.ram, nodeInfo.cores, hacknetProductionMult) - nodeInfo.production));
+        ramCostBenAgg.push(ns.hacknet.getRamUpgradeCost(i, 1) / (calcRate(nodeInfo.level, nodeInfo.ram * 2, nodeInfo.cores, hacknetProductionMult) - nodeInfo.production));
+        coreCostBenAgg.push(ns.hacknet.getCoreUpgradeCost(i, 1) / (calcRate(nodeInfo.level, nodeInfo.ram, nodeInfo.cores + 1, hacknetProductionMult) - nodeInfo.production));
+    }
+
+    var newNodeCost = ns.hacknet.getPurchaseNodeCost();
+
+    while (true) {
+
+        newNodeCost = ns.hacknet.getPurchaseNodeCost();
+        var baseLevelCostBen = (levelUpgradeCost + newNodeCost) / (1.6 * mults.production);
+        var baseRamCostBen = (ramUpgradeCost + newNodeCost) / (1.6 * mults.production);
+        var baseCoreCostBen = (coreUpgradeCost + newNodeCost) / (1.6 * mults.production);
+
+        var minLevelCostBen = Math.min.apply(null, levelCostBenAgg);
+        var minRamCostBen = Math.min.apply(null, ramCostBenAgg);
+        var minCoreCostBen = Math.min.apply(null, coreCostBenAgg);
+        ns.print("Starting Path Comparison");
+        ns.print(levelCostBenAgg);
+        ns.print(ramCostBenAgg);
+        ns.print(coreCostBenAgg);
+        var nodeIndex; //This will change for each run but I'm defining it here
+
+        if (minLevelCostBen <= minRamCostBen && minLevelCostBen <= minCoreCostBen && minLevelCostBen <= baseLevelCostBen) {
+            //Buy a level
+            nodeIndex = levelCostBenAgg.indexOf(minLevelCostBen);
+            while (ns.getServerMoneyAvailable("home") * 0.1 < ns.hacknet.getLevelUpgradeCost(nodeIndex, 1)) {
+                ns.print("Not Enough Money to Upgrade Level of " + nodeIndex);
+                await ns.sleep(3000);
+            }
+            ns.print("Upgrading Level of: " + nodeIndex);
+            ns.hacknet.upgradeLevel(nodeIndex, 1);
+
+        } else if (minRamCostBen < minLevelCostBen && minRamCostBen < minCoreCostBen && minRamCostBen < baseRamCostBen) {
+            //Buy ram
+            nodeIndex = ramCostBenAgg.indexOf(minRamCostBen);
+            while (ns.getServerMoneyAvailable("home") * 0.1 < ns.hacknet.getRamUpgradeCost(nodeIndex, 1)) {
+                ns.print("Not Enough Money to Upgrade Ram of " + nodeIndex);
+                await ns.sleep(3000);
+            }
+            ns.print("Upgrading Ram of: " + nodeIndex);
+            ns.hacknet.upgradeRam(nodeIndex, 1);
+        } else if (minCoreCostBen < minLevelCostBen && minCoreCostBen < minRamCostBen && minCoreCostBen < baseCoreCostBen) {
+            //Buy a core
+            nodeIndex = coreCostBenAgg.indexOf(minCoreCostBen);
+            while (ns.getServerMoneyAvailable("home") * 0.1 < ns.hacknet.getCoreUpgradeCost(nodeIndex, 1)) {
+                ns.print("Not Enough Money to Upgrade Core of " + nodeIndex);
+                await ns.sleep(3000);
+            }
+            ns.print("Upgrading Core of: " + nodeIndex);
+            ns.hacknet.upgradeCore(nodeIndex, 1);
+        } else if (baseLevelCostBen < minLevelCostBen || baseRamCostBen < minRamCostBen || baseCoreCostBen < minCoreCostBen) {
+            //Buy a server
+            while (ns.getServerMoneyAvailable("home") * 0.1 < ns.hacknet.getPurchaseNodeCost()) {
+                ns.print("Not Enough Money to Buy Node");
+                await ns.sleep(3000);
+            }
+            ns.print("Buying Node");
+            nodeIndex = ns.hacknet.purchaseNode();
+        }
+        nodeInfo = ns.hacknet.getNodeStats(nodeIndex);
+        levelCostBenAgg[nodeIndex] = ns.hacknet.getLevelUpgradeCost(nodeIndex, 1) / (calcRate(nodeInfo.level + 1, nodeInfo.ram, nodeInfo.cores, hacknetProductionMult) - nodeInfo.production);
+        ramCostBenAgg[nodeIndex] = ns.hacknet.getRamUpgradeCost(nodeIndex, 1) / (calcRate(nodeInfo.level, nodeInfo.ram * 2, nodeInfo.cores, hacknetProductionMult) - nodeInfo.production);
+        coreCostBenAgg[nodeIndex] = ns.hacknet.getCoreUpgradeCost(nodeIndex, 1) / (calcRate(nodeInfo.level, nodeInfo.ram, nodeInfo.cores + 1, hacknetProductionMult) - nodeInfo.production);
+    }
+}
+
+export function calcRate(level, ram, cores, prod) {
+    return (level * 1.6) *
+        Math.pow(1.035, ram - 1) *
+        ((cores + 5) / 6) *
+        prod;
+}
