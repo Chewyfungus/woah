@@ -1,11 +1,19 @@
-while (!hasRootAccess("joesguns")) {
-    print("waiting...");
-}
 growthTarget = read("growth-target.txt");
+while (!hasRootAccess(growthTarget)) {
+    print("growth Target has not been hacked");
+    sleep(1000);
+}
+
 remSecLevel = getServerSecurityLevel(growthTarget) - getServerMinSecurityLevel(growthTarget);
 rootedNodes = [];
 
 while (true) {
+    //handle a growth target change
+    newGrowthTarget = read("growth-target.txt");
+    if(newGrowthTarget !== growthTarget){
+        growthTarget = newGrowthTarget;
+        remSecLevel = getServerSecurityLevel(growthTarget) - getServerMinSecurityLevel(growthTarget);
+    }
     //if we have to weaken at least once and we are not already weakening
     activityLevel = read(1);
     while(activityLevel !== "NULL PORT DATA"){
@@ -34,7 +42,7 @@ while (true) {
     //use everything else for growth
     if (!scriptRunning("g.script", "home")) {
         serverRam = getServerRam("home");
-        exec("g.script", "home", Math.floor((serverRam[0] - serverRam[1]) * 0.90 / getScriptRam("w.script")), growthTarget);
+        exec("g.script", "home", Math.floor((serverRam[0] - serverRam[1]) * 0.90 / getScriptRam("g.script")), growthTarget);
     }
     print("Home Growth Check Done");
 }

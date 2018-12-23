@@ -1,7 +1,9 @@
 allNodes = [];
 rootedNodes = [];
 growthTarget = read("growth-target.txt");
+resetAllNodes = false;
 
+//wait until some nodes have been discovered
 while (allNodes.length < 1) {
     allNodesText = read("known-nodes.txt");
     if (allNodesText) {
@@ -9,7 +11,26 @@ while (allNodes.length < 1) {
     }
 }
 
+//wait until the first growth target has been nuked
+while (!hasRootAccess(growthTarget)) {
+    nuke("foodnstuff"); //nuke the node that doesn't need any hack level
+    if (!scriptRunning("g.script","home") && getServerRequiredHackingLevel(growthTarget) > getHackingLevel()) {
+        serverRam = getServerRam("home");
+        exec("g.script", "home", Math.floor((serverRam[0] - serverRam[1]) * 0.90 / getScriptRam("g.script")), "foodnstuff");
+    }else{
+        nuke(growthTarget);
+    }
+    sleep(1000); //wait till node-manager hacks the growth target
+}
+
+//enter main loop
 while (true) {
+    //if there's a new growth target we want to reset all nodes
+    newGrowthTarget = read("growth-target.txt");
+    if (growthTarget !== newGrowthTarget) {
+        resetAllNodes = true;
+        growthTarget = newGrowthTarget;
+    }
     for (i = 0; i < allNodes.length; i++) {
         if (!hasRootAccess(allNodes[i])) {
             if (getServerRequiredHackingLevel(allNodes[i]) <= getHackingLevel()) {
@@ -29,8 +50,33 @@ while (true) {
                             continue;
                         }
                         if (portsReq > 2) {
-                            print("Not enough port breakers: " + allNodes[i]);
-                            continue;
+                            if (fileExists("relaySMTP.exe")) {
+                                relaysmtp(allNodes[i]);
+                            } else {
+                                print("Not enough port breakers: " + allNodes[i]);
+                                continue;
+                            }
+                            if (portsReq > 3) {
+                                if (fileExists("HTTPWorm.exe")) {
+                                    httpworm(allNodes[i]);
+                                } else {
+                                    print("Not enough port breakers: " + allNodes[i]);
+                                    continue;
+                                }
+                                if (portsReq > 4) {
+                                    if (fileExists("SQLInject.exe")) {
+                                        sqlinject(allNodes[i]);
+                                    } else {
+                                        print("Not enough port breakers: " + allNodes[i]);
+                                        continue;
+                                    }
+                                    if(portsReq > 5){
+                                        print("Is 6 ports even possible?");
+                                        continue;
+                                    }
+                                }
+                            }
+
                         }
                     }
                 }
@@ -49,18 +95,22 @@ while (true) {
         } else {
             if (rootedNodes.indexOf(allNodes[i]) == -1) {
                 rootedNodes.push(allNodes[i]);
-                if (!scriptRunning("mine.script", allNodes[i])) {
-                    tprint("Restarted mine.script on: " + allNodes[i]);
-                    scp("g.script", "home", allNodes[i]);
-                    scp("mine.script", "home", allNodes[i]);
-                    serverRam = getServerRam(allNodes[i]);
-                    growThreads = Math.floor(((serverRam[0] - serverRam[1]) - getScriptRam("mine.script")) / getScriptRam("g.script"));
-                    exec("mine.script", allNodes[i], 1, growthTarget, growThreads);
-                    sleep(5000);
-                }
+            }
+            if (resetAllNodes) {
+                while (killall(allNodes[i])) {}
+            }
+            if (!scriptRunning("mine.script", allNodes[i])) {
+                tprint("Restarted mine.script on: " + allNodes[i]);
+                scp("g.script", "home", allNodes[i]);
+                scp("mine.script", "home", allNodes[i]);
+                serverRam = getServerRam(allNodes[i]);
+                growThreads = Math.floor(((serverRam[0] - serverRam[1]) - getScriptRam("mine.script")) / getScriptRam("g.script"));
+                exec("mine.script", allNodes[i], 1, growthTarget, growThreads);
+                sleep(5000);
             }
         }
     }
+    resetAllNodes = false;
     print("End of Loop");
     allNodes = read("known-nodes.txt").split(",");
 }
